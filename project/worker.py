@@ -2,14 +2,16 @@ import os
 import time
 
 from celery import Celery
-
+from celery.exceptions import SoftTimeLimitExceeded
+import celeryconfig
 
 celery = Celery(__name__)
-celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
-celery.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379")
+celery.config_from_object(celeryconfig)
 
-
-@celery.task(name="create_task")
+@celery.task(name="create_task",time_limit=25)
 def create_task(task_type):
-    time.sleep(int(task_type) * 10)
-    return True
+    try:
+        time.sleep(int(task_type) * 10)
+        return True
+    except SoftTimeLimitExceeded:
+        pass
