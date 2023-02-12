@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from worker import create_task
-
+from pyd_models import TaskType
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -19,9 +19,8 @@ def home(request: Request):
 
 
 @app.post("/tasks", status_code=201)
-def run_task(payload = Body(...)):
-    task_type = payload["type"]
-    task = create_task.delay(int(task_type))
+def run_task(payoload:TaskType):
+    task = create_task.delay(payoload.type)
     return JSONResponse({"task_id": task.id})
 
 
